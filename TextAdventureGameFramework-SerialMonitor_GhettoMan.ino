@@ -6,7 +6,7 @@
 #include "fonts/allFonts.h"
 #include "bitmaps/allBitmaps.h"
 
-#define arr_len(x) (sizeof(x) / sizeof(*x))
+const arr_len(x) = (sizeof(x) / sizeof(*x));
 const int A_Button = 1;
 const int B_Button = 2;
 const int C_Button = 3;
@@ -29,8 +29,10 @@ boolean Weapon[10]; //Array that stores the weapons you've collected.
 const int NUM_WEAPS = arr_len(Weapon);
 int curStage; //Variable that stores the current scene. Used by setStage() and changeStage() to load the appropriate scene.
 boolean gameLoop; //Variable that causes the changeStage() function to loop inside adventureGame(). Set value to 0 to return to mainMenu().
+const boolean debugMode = 0; //Setting this value to 1 enables "debug mode" (Serial monitor input/output).
 
 
+gText fullTextarea = gText(0, 0, GLCD.Right, GLCD.Bottom, SystemFont5x7)
 gText eventTextarea = gText(0, 0, GLCD.Right, GLCD.CenterY-1, SystemFont5x7);
 gText actionTextarea = gText(0, GLCD.CenterY, GLCD.Right, GLCD.Bottom, SystemFont5x7);
 
@@ -53,11 +55,61 @@ void ClearScreen(boolean L)
 {
   GLCD.ClearScreen();
   if (L==0){ //Draws a center line to divide the textareas, for action scenes. INCOMPLETE
-    
+
   }
   else if(L==1){ //Draws a box around the outside of the screen, for information-only scenes. INCOMPLETE
-    
+
     SpecialClrScreen = 1;
+  }
+}
+
+void Prt(String printText, int printRegion = 1, boolean newLine = 1) //Print function. Should be called whenever text is to be printed. First parameter is text to print, second paremeter represents where on the GLCD to print (0 = fullscreen, 1 = top half, 2 = bottom half). Third parameter should be set to 0 to prevent a newline.
+{
+  if (newLine == 0) {
+    switch (printRegion) {
+      case 0:
+      fullTextarea.println(printText);
+      if (debugMode) {Serial.print(printText);}
+      break;
+
+      case 1:
+      eventTextarea.print(printText);
+      if (debugMode) {Serial.print(printText);}
+      break;
+
+      case 2:
+      actionTextarea.print(printText);
+      if (debugMode) {Serial.print(printText);}
+      break;
+
+      default:
+      fullTextArea.println(); fullTextarea.println("ERROR: Prt function requires a print region from 0-2 to be specified");
+      if (debugMode) {Serial.println(); Serial.println("ERROR: Prt function requires a print region from 0-2 to be specified");}
+      break;
+    }
+  }
+  else {
+    switch (printRegion) {
+      case 0:
+      fullTextarea.println(printText);
+      if (debugMode) {Serial.println(printText);}
+      break;
+
+      case 1:
+      eventTextarea.println(printText);
+      if (debugMode) {Serial.println(printText);}
+      break;
+
+      case 2:
+      actionTextarea.println(printText);
+      if (debugMode) {Serial.println(printText);}
+      break;
+
+      default:
+      fullTextArea.println(); fullTextarea.println("ERROR: Prt function requires a print region from 0-2 to be specified");
+      if (debugMode) {Serial.println(); Serial.println("ERROR: Prt function requires a print region from 0-2 to be specified");}
+      break;
+    }
   }
 }
 
@@ -71,7 +123,7 @@ void mainMenu() //Main menu function.
 {
 //  ClearScreen(0);
 //  eventTextarea.println("Welcome to GHETTO MAN!!");
-  Serial.println("Welcome to GHETTO MAN!!");
+  Prt(1, "Welcome to GHETTO MAN!");
   contextOptions("Start Game", "Display Instructions", "Credits", "");
 
   if (selOpt == "Start Game") {adventureGame();}
@@ -96,27 +148,27 @@ void buttonPress(int N) //Function to assign button value to $Button. The argume
       // read the incoming byte:
       incString = Serial.readString();
       Button = incString.toInt();
-    
+
       // say what you got:
       Serial.print("I received: ");
       Serial.println(incString);
-      
+
       switch (N) {
         case 1: //Input only allows 1 button
         if (Button == 1) {buttonNull = 1;}
         else {Serial.println("Invalid input. Try again.");}
         break;
-        
+
         case 2: //Input only allows 2 buttons
         if (Button == 1 || Button == 2) {buttonNull = 1;}
         else {Serial.println("Invalid input. Try again.");}
         break;
-        
+
         case 3: //Input allows 3 buttons (no paging)
         if (Button  == 1 || Button == 2 || Button == 3) {buttonNull = 1;}
         else {Serial.println("Invalid input. Try again.");}
         break;
-        
+
         case 4: //Input allows 4 buttons (paging left)
         if (Button == 1 || Button == 2 || Button == 3 || Button == 4) {buttonNull = 1;}
         else {Serial.println("Invalid input. Try again.");}
@@ -126,22 +178,22 @@ void buttonPress(int N) //Function to assign button value to $Button. The argume
         if (Button == 1 || Button == 2 || Button == 3 || Button == 5) {buttonNull = 1;}
         else {Serial.println("Invalid input. Try again.");}
         break;
-        
+
         case 6: //Input allows 5 buttons (paging left and right)
         if (Button == 1 || Button == 2 || Button == 3 || Button == 4 || Button == 5) {buttonNull = 1;}
         else {Serial.println("Invalid input. Try again.");}
         break;
-        
+
         case 11: //Input allows only 2 buttons (1 option and paging left)
         if (Button == 1 || Button == 4) {buttonNull = 1;}
         else {Serial.println("Invalid input. Try again.");}
         break;
-        
+
         case 12: //Input allows only 3 buttons (2 options and paging left)
         if (Button == 1 || Button == 2 || Button == 4) {buttonNull = 1;}
         else {Serial.println("Invalid input. Try again.");}
         break;
-        
+
         default: //No # of inputs specified
         if (Button == 1 || Button == 2 || Button == 3) {buttonNull = 1;}
         else {Serial.println("(You must press A, B, or C.)");}
@@ -167,7 +219,7 @@ void contextOptions(char* charArray, ...) //Accepts any number of arguments, it 
     C++;
   }
   va_end(argptr);
-  
+
   String contextOptions[C+1];
   for (int i=0; i<C; i++) { //Reads strBuf until it finds a comma, indicating a new element. Stores that element as a key in contextOptions, then removes it from strBuf.
     int commaLoc = strBuf.indexOf(',');
@@ -192,17 +244,17 @@ void contextOptions(char* charArray, ...) //Accepts any number of arguments, it 
   }
   else {lineA = ""; lineB = ""; lineC = "";}
 
-  if (lineA != "") {Serial.print("A - "); Serial.println(lineA);} //Writes lineA, lineB, and lineC to the screen.
-  else {Serial.println("");}
-  if (lineB != "") {Serial.print("B - "); Serial.println(lineB);}
-  else {Serial.println("");}
-  if (lineC != "") {Serial.print("C - "); Serial.println(lineC);}
-  else {Serial.println("");}
+  if (lineA != "") {Prt("A - ", 2, 0); Prt(lineA, 2, 1);} //Writes lineA, lineB, and lineC to the screen.
+  else {Prt("", 2, 1);}
+  if (lineB != "") {Prt("B - ", 2, 0); Prt(lineB, 2, 1);}
+  else {Prt("", 2, 1);}
+  if (lineC != "") {Prt("C - ", 2, 0); Prt(lineC, 2, 1);}
+  else {Prt("", 2, 1);}
 
-  if (currentPage < contPages) {Serial.print("--> (Page "); Serial.print(currentPage); Serial.print(" of "); Serial.print(contPages); Serial.println(")");} //Prints directional arrows based on the number of pages available and where they are in relation to the active page.
-  else if (currentPage > 1) {Serial.print("<-- (Page "); Serial.print(currentPage); Serial.print(" of "); Serial.print(contPages); Serial.println(")");}
-  else if (currentPage == contPages) {Serial.println("");}
-  else {Serial.print("<---> (Page "); Serial.print(currentPage); Serial.print(" of "); Serial.print(contPages); Serial.println(")");}
+  if (currentPage < contPages) {Prt("--> (Page ", 2, 0); Prt(currentPage, 2, 0); Prt(" of ", 2, 0); Prt(contPages, 2, 0); Prt(")", 2, 1);} //Prints directional arrows based on the number of pages available and where they are in relation to the active page.
+  else if (currentPage > 1) {Prt("<-- (Page ", 2, 0); Prt(currentPage, 2, 0); Prt(" of ", 2, 0); Prt(contPages, 2, 0); Prt(")", 2, 1);}
+  else if (currentPage == contPages) {Prt("", 2, 1);}
+  else {Prt("<---> (Page ", 2, 0); Prt(currentPage, 2, 0); Prt(" of ", 2, 0); Prt(contPages, 2, 0); Prt(")", 2, 1);}
 
   if (lineA == "") {buttonPress(0);} //Calls buttonPress(), using the page layout to determine how many context options to check for.
   else if (lineB == "" && currentPage > 1) {buttonPress(11);}
@@ -219,11 +271,11 @@ void contextOptions(char* charArray, ...) //Accepts any number of arguments, it 
     case 1:
     selOpt = lineA;
     break;
-    
+
     case 2:
     selOpt = lineB;
     break;
-    
+
     case 3:
     selOpt = lineC;
     break;
@@ -289,15 +341,15 @@ void changeStage() //Function to load the proper scene. Goes through all the pos
     case 0:
     Prison();
     break;
-    
+
     case 1:
     PrisonDuel();
     break;
-    
+
     case 2:
     Alley1();
     break;
-    
+
     case 3:
     Alley2();
     break;
@@ -305,12 +357,16 @@ void changeStage() //Function to load the proper scene. Goes through all the pos
     case 4:
     Dumpster();
     break;
-    
+
+    case 5:
+    AlleyLadder();
+    break;
+
     default:
     gameLoop = 0;
 //    ClearScreen(1);
 //    eventTextarea.print("Something seems to have broken. Sorry about that! Press any button to return to the Main Menu. (ERROR:Undefined Stage)");
-    Serial.println("Something seems to have broken. Sorry about that! Press any button to return to the Main Menu. (ERROR:Undefined Stage)");
+    Prt("Something seems to have broken. Sorry about that! Press any button to return to the Main Menu. (ERROR:Undefined Stage)", 0, 1);
     buttonPress(0);
   }
 }
@@ -319,9 +375,9 @@ void adventureGame() //Function to kick off gameplay.
 {
 //  ClearScreen(1);
 //  eventTextarea.print("You are in a jail cell.");
-  Serial.println("You are in a jail cell.");
+  Prt("You are in a jail cell.");
 //  actionTextarea.print("(Press any button to examine your surroundings)");
-  Serial.println("(Press any button to examine your surroundings)");
+  Prt("(Press any button to examine your surroundings)", 2);
   setStage(0);
   clearItems();
   clearWeapons();
@@ -335,7 +391,7 @@ void adventureGame() //Function to kick off gameplay.
 void instructions() //Instructions function for main menu.
 {
 //  GLCD.ClearScreen();
-  Serial.println("You are Ghetto Man! Once upon a time, there was a fellow named Jeff Harris. A fairly young man fresh out of \"da hood,\" he was working as a freshman focus teacher at an undisclosed highschool in unpredictable-weather-ville. He was imprisoned for calling his students' projects \"ghetto.\" Now, he wants to escape, but he needs YOUR help to find his freedom! (Any persons or places resembling real-life things are actually purely fictitious.)");
+  Prt("You are Ghetto Man! Once upon a time, there was a fellow named Jeff Harris. A fairly young man fresh out of \"da hood,\" he was working as a freshman focus teacher at an undisclosed highschool in unpredictable-weather-ville. He was imprisoned for calling his students' projects \"ghetto.\" Now, he wants to escape, but he needs YOUR help to find his freedom! (Any persons or places resembling real-life things are actually purely fictitious.)", 0);
 //  GLCD.print("You are Ghetto Man! Once upon a time, there was a fellow named Jeff Harris. A fairly young man fresh out of \"da hood,\" he was working as a freshman focus teacher at an undisclosed highschool in unpredictable-weather-ville. He was imprisoned for calling his students' projects \"ghetto.\" Now, he wants to escape, but he needs YOUR help to find his freedom! (Any persons or places resembling real-life things are actually purely fictitious.)");
   buttonPress(0);
 }
@@ -343,9 +399,9 @@ void instructions() //Instructions function for main menu.
 void credits() //Credits function for main menu.
 {
 //  GLCD.DrawBitmap(introScreen, 0,0);
-  Serial.println("Programming - Ben Holt");
-  Serial.println("Design - Ben Holt");
-  Serial.println("Writing - Ben Holt");
+  Prt("Programming - Saoirse Holt", 2);
+  Prt("Design - Saoirse Holt", 2);
+  Prt("Writing - Saoirse Holt", 2);
   buttonPress(0);
 }
 
@@ -353,69 +409,79 @@ void credits() //Credits function for main menu.
 
 void Prison() //Stage 0
 {
-//  eventTextarea.print("You observe a multitude of objects adorning your cell.");
-  Serial.println("You observe a multitude of objects adorning your cell.");
+  Prt("You observe a multitude of objects adorning your cell.");
   if (Item[0] || Weapon[0]) {contextOptions("Cot", "Cellmate", "Toilet", "Striped Pajamas", "Toilet Paper", "");}
   else {contextOptions("Cot", "Cellmate", "Toilet", "Striped Pajamas", "Toilet Paper", "Food Tray", "");}
 
-  if (selOpt == "Cot") {Serial.println("It's a cot.");}
+  if (selOpt == "Cot") {Prt("It's a cot.");}
   else if (selOpt == "Cellmate") {
-    if (Weapon[0]) {setStage(1); Serial.println("The hulking beast of a man sharing your cell snarls and lunges at you. Guards come running to break up the duel...");}
-    else {Serial.println("Your fellow inmate doesn't appreciate the look you give him and beats you up.");}
+    if (Weapon[0]) {setStage(1); Prt("The hulking beast of a man sharing your cell snarls and lunges at you. Guards come running to break up the duel...");}
+    else {Prt("Your fellow inmate doesn't appreciate the look you give him and beats you up.");}
   }
   else if (selOpt == "Toilet") {
-    if (Weapon[0]) {setStage(1); Serial.println("The guards hear you flush, and they are none too happy about you being up after curfew...");}
-    else {Serial.println("The prison guards come to enforce the \"no toilet after 9:00 PM\" rule, and proceed to beat you up.");}
+    if (Weapon[0]) {setStage(1); Prt("The guards hear you flush, and they are none too happy about you being up after curfew...");}
+    else {Prt("The prison guards come to enforce the \"no toilet after 9:00 PM\" rule, and proceed to beat you up.");}
   }
-  else if (selOpt == "Striped Pajamas") {Serial.println("You won't win any awards for style wearing these.");}
+  else if (selOpt == "Striped Pajamas") {Prt("You won't win any awards for style wearing these.");}
   else if (selOpt == "Toilet Paper") {
-    if (Item[0]) {recieveWeapon(0); Item[0] = 0; Serial.println("You shave the food tray down to a fine point. Not the most impressive weapon ever, but it'll have to do. (Acquired Plastic Shiv!)");}
-    else {Serial.println("It's pretty rough. Might actually be sandpaper.");}
+    if (Item[0]) {recieveWeapon(0); Item[0] = 0; Prt("You shave the food tray down to a fine point. Not the most impressive weapon ever, but it'll have to do. (Acquired Plastic Shiv!)");}
+    else {Prt("It's pretty rough. Might actually be sandpaper.");}
   }
-  else if (selOpt == "Food Tray") {Item[0] = 1; Serial.println("You pick up the food tray. You note that it appears pretty sturdy, and that you could perhaps fashion it into a weapon. (Acquired Plastic Food Tray!)");}
+  else if (selOpt == "Food Tray") {Item[0] = 1; Prt("You pick up the food tray. You note that it appears pretty sturdy, and that you could perhaps fashion it into a weapon. (Acquired Plastic Food Tray!)");}
 }
 
 void PrisonDuel() //Stage 1
 {
-  Serial.println("The guards are approaching you, about to draw their batons. This is probably going to hurt.");
+  Prt("The guards are approaching you, about to draw their batons. This is probably going to hurt.");
   contextOptions("*Cross swords*", "*Cower in fear*", "");
 
-  if (selOpt == "*Cross swords*") {setStage(2); Serial.println("It isn't pretty but you come out on top. Leaving the guards groaning on your cell floor, you make a break for the employee entrance.");}
-  else if (selOpt == "*Cower in fear*") {gameLoop = 0; Serial.println("The guards find your shiv, and they lay into you. After a thorough, meticulous beating, they haul you off to solitary confinement. Good luck getting out now. GAME OVER");}
+  if (selOpt == "*Cross swords*") {setStage(2); Prt("It isn't pretty but you come out on top. Leaving the guards groaning on your cell floor, you make a break for the employee entrance.");}
+  else if (selOpt == "*Cower in fear*") {gameLoop = 0; Prt("The guards find your shiv, and they lay into you. After a thorough, meticulous beating, they haul you off to solitary confinement. Good luck getting out now. GAME OVER");}
 }
 
 void Alley1() //Stage 2
 {
-  Serial.println("You burst out into the cold night air, hands on your knees, breath hitching in your throat as you attempt to draw even with it. The city bustles with life, in defiance of the encroaching night. You can hear horns blaring at a nearby intersection. Walking toward the nearest alley, you quickly duck around the corner.");
-  Serial.println("(Press any button to examine your surroundings)");
+  Prt("You burst out into the cold night air and collapse against a rough brick wall, wheezing from exertion. The city is still bustling even this late; a loud, blaring horn roars for a good 10 seconds from a nearby intersection, encouraging you to duck into a dark alley. The harsh fluorescents from the jail have robbed you entirely of your night vision.")
+  Prt("(Press any button to examine your surroundings)", 2);
   setStage(3);
 }
 
 void Alley2() //Stage 3
 {
-  if (Weapon[1]) {Serial.println("The vagabond is nowhere to be seen.");
+  if (Weapon[1]) {Prt("The vagabond is nowhere to be seen.");
   contextOptions("Dumpster", "Ladder", "");
   }
-  else if (Weapon[2]) {Serial.println("A puddle of goo is seeping out of the grey, shriveled husk on the ground, slowly dissolving the asphalt around it.");
+  else if (Weapon[2]) {Prt("A puddle of goo is seeping out of the grey, shriveled husk on the ground, slowly dissolving the asphalt around it.");
   contextOptions("Dumpster", "Ladder", "");
   }
-  else {Serial.println("A dumpster has been tipped forward and shoved up against the concrete wall of an apartment complex. Lying on his side, head propped up by an asphalt clod, a particularly grizzled vagabond eyes you warily.");
+  else {Prt("A dumpster has been tipped forward and shoved up against the concrete wall of an apartment complex. Lying on his side, head propped up by an asphalt clod, a particularly grizzled vagabond eyes you warily.");
   contextOptions("Dumpster", "Hobo", "Ladder", "");
   }
 
-  if (selOpt == "Dumpster") {setStage(4); Serial.println("Big. Metal. Smelly. You kneel down to take a look inside.");}
-  else if (selOpt == "Hobo") {Serial.println("You take a step toward the vagabond, who sits up to look at you questioningly.");}
-  else if (selOpt == "Ladder") {Serial.println("You might be able to reach it if you jump.");}
+  if (selOpt == "Dumpster") {setStage(4); Prt("Big. Metal. Smelly. You kneel down to take a look inside.");}
+  else if (selOpt == "Hobo") {Prt("You take a step toward the vagabond, who sits up to look at you questioningly.");}
+  else if (selOpt == "Ladder") {setStage(5); Prt("You might be able to reach it if you jump.");}
 }
 
 void Dumpster() //Stage 4
 {
-  Serial.println("The stench is overwhelming, but there may be something of use in here.");
+  Prt("The stench is overwhelming, but there may be something of use in here.");
   if (Item[1]) {contextOptions("Rotten Fruit", "*Leave Dumpster*", "");}
   else {contextOptions("Snorkel", "Rotten Fruit", "*Leave Dumpster*", "");}
 
-  if (selOpt == "Snorkel") {Item[1] = 1; Serial.println("There aren't many use cases for one of these, but you may as well grab it. (Acquired Snorkel!)");}
-  else if (selOpt == "Rotten Fruit") {Serial.println("You're not a fruit fly, best leave these where they are.");}
-  else if (selOpt == "*Leave Dumpster*") {setStage(3); Serial.println("Dumpster diving isn't really your thing. You crawl backward and let the lid return to its preferred angle.");}
+  if (selOpt == "Snorkel") {Item[1] = 1; Prt("There aren't many uses for one of these, but you may as well grab it. (Acquired Snorkel!)");}
+  else if (selOpt == "Rotten Fruit") {Prt("You're not a fruit fly, best leave these where they are.");}
+  else if (selOpt == "*Leave Dumpster*") {setStage(3); Prt("Dumpster diving isn't really your thing. You crawl backward and let the lid return to its preferred angle.");}
 }
 
+void AlleyLadder() //Stage 5
+{
+  Prt("It looks to be about 80% rust.");
+  contextOptions("Climb", "Leave", "");
+
+  if (selOpt == "Climb") {Prt("There are 3 rungs missing in a row."); contextOptions("Jump", "I'll pass", "");
+    if (selOpt == "Jump") {Prt("You tense your legs and launch upward, barely catching yourself as the bottom half of the ladder crashes to the ground and disintegrates to ruddy brown dust. Seconds later you hear police sirens wailing concerningly nearby. The only way out is up.", 0);}
+  }
+  else {Prt("I guess you can check this out *ladder*.");}
+  setStage(3);
+}
