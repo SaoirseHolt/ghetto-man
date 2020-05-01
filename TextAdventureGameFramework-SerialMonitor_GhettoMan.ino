@@ -326,7 +326,7 @@ byte Damage(byte x, boolean y)
 
   if (y) {Health = Health + x; }
   else {Health = Health - x}
-  Health = constrain(Health, 0, 100);
+  Health = constrain(Health, 0, maxHealth);
   if (Health == 0) {} //Implement YOU ARE DEAD functionality!!!
 
   return
